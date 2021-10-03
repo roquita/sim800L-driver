@@ -32,11 +32,12 @@ extern "C"
     } sim800L_t;
 
     sim800L_err_t sim800L_init(sim800L_t *sim800L);
+    /*
     sim800L_err_t sim800_link_net(sim800L_t *sim800L);
     sim800L_err_t sim800L_unlink_net(sim800L_t *sim800L);
     sim800L_err_t sim800L_tcp_connect(sim800L_t *sim800L, char *ip, int port, bool secure);
     sim800L_err_t sim800L_tcp_send(sim800L_t *sim800L, char *data, int len);
-
+*/
 
 #ifdef __cplusplus
 }

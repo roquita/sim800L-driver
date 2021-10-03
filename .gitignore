@@ -1,0 +1,3 @@
+examples/espidf-ex/build/
+examples/espidf-ex/sdkconfig
+examples/espidf-ex/sdkconfig.old
