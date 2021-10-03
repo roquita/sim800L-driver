@@ -5,4 +5,6 @@ void app_main(void)
 {
     sim800L_t sim800;
     sim800L_init(&sim800);
+
+    printf("dev start\n");
 }
