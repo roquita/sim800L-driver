@@ -10,25 +10,34 @@ extern "C"
     typedef enum
     {
         SIM800L_OK,
-        SIM800L_FAIL,
+        SIM800L_ERROR,
         SIM800L_TIMEOUT,
+        SIM800L_BUS_FAULT,
+        SIM800L_INVALID_ARG,
+        SIM800L_OVERFLOW
     } sim800L_err_t;
 
-    typedef sim800L_err_t (*sim800L_send_cmd_t)(char *cmd, char *response, int timeout);
-    typedef sim800L_err_t (*sim800L_enable_t)(void);
-    typedef sim800L_err_t (*sim800L_disable_t)(void);
-    typedef sim800L_err_t (*sim800L_reset_t)(void);
-    typedef sim800L_err_t (*sim800L_turn_on_t)(void);
-    typedef sim800L_err_t (*sim800L_turn_off_t)(void);
+    typedef sim800L_err_t (*sim800L_send_string_t)(char *string);
+    typedef sim800L_err_t (*sim800L_read_byte_t)(char *byte);
+    typedef int (*sim800L_available_t)(void);
+    typedef sim800L_err_t (*sim800L_flush_t)(void);
+    typedef sim800L_err_t (*sim800L_delay_ms_t)(int ms);
+    typedef sim800L_err_t (*sim800L_pwrkey_gpio_set_level_t)(int level);
+    typedef sim800L_err_t (*sim800L_reset_gpio_set_level_t)(int level);
+    typedef sim800L_err_t (*sim800L_power_gpio_set_level_t)(int level);
+    typedef int64_t (*sim800L_get_time_ms_t)(void);
 
     typedef struct
     {
-        sim800L_send_cmd_t send_cmd;
-        sim800L_enable_t enable;
-        sim800L_disable_t disable;
-        sim800L_reset_t reset;
-        sim800L_turn_on_t turn_on;
-        sim800L_turn_off_t turn_off;
+        sim800L_send_string_t send_string;
+        sim800L_read_byte_t read_byte;
+        sim800L_available_t available;
+        sim800L_flush_t flush;
+        sim800L_delay_ms_t delay_ms;
+        sim800L_get_time_ms_t get_time_ms;
+        sim800L_pwrkey_gpio_set_level_t pwrkey_gpio_set_level;
+        sim800L_reset_gpio_set_level_t reset_gpio_set_level;
+        sim800L_power_gpio_set_level_t power_gpio_set_level;
     } sim800L_t;
 
     sim800L_err_t sim800L_init(sim800L_t *sim800L);
