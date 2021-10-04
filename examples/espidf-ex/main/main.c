@@ -119,7 +119,7 @@ void app_main(void)
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
     };
     uart_param_config(UART_NUM_1, &uart_config);
-    uart_set_pin(UART_NUM_1, 26, 27, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+    uart_set_pin(UART_NUM_1, 27, 26, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
     // We won't use a buffer for sending data.
     uart_driver_install(UART_NUM_1, RX_BUF_SIZE * 2, 0, 0, NULL, 0);
 
@@ -133,5 +133,7 @@ void app_main(void)
     modem.reset_gpio_set_level = modem_reset_gpio_set_level;
     modem.power_gpio_set_level = modem_power_gpio_set_level;
     modem.get_time_ms = modem_get_time_ms;
-    sim800L_init(&modem);
+    sim800L_err_t res = sim800L_init(&modem);
+    if(res == SIM800L_OK)
+        printf("sim800L_init SUCCESS, res = %u\n", res);
 }
