@@ -38,14 +38,15 @@
         p_sim800L->power_gpio_set_level(0); \
     }
 static inline sim800L_err_t SIM800L_WAIT_FOR_RESPONSE(sim800L_t *sim800L, char *response, int max_len, int lines, int32_t timeout)
-{ // \r\n
+{ 
+    lines++;// \r\n at start of response
     int response_index = 0;
     int64_t start_ms = sim800L->get_time_ms();
     while (sim800L->get_time_ms() - start_ms < (int64_t)timeout)
     {
         while (sim800L->available() > 0)
         {
-            
+
             static char prev_byte = 0;
             char byte = 0;
             sim800L_err_t res = sim800L->read_byte(&byte);
@@ -56,7 +57,7 @@ static inline sim800L_err_t SIM800L_WAIT_FOR_RESPONSE(sim800L_t *sim800L, char *
             response[response_index] = byte;
             response_index++;
             max_len--;
-            printf("%c", byte);
+            //printf("%c", byte);
 
             if (byte == '\n' && prev_byte == '\r')
             {
@@ -97,7 +98,7 @@ static inline sim800L_err_t SIM800L_SEND_AT_CMD(sim800L_t *sim800L, char *cmd, c
         printf("        ---> send_string failed\n");
 #endif
         return res;
-    }    
+    }
 
     res = SIM800L_WAIT_FOR_RESPONSE(sim800L, response, max_len, lines, timeout);
 
@@ -119,11 +120,25 @@ static inline sim800L_err_t SIM800L_AT(sim800L_t *sim800L)
     char response[10] = {0};
     //char bufer[30];
     //sprintf(bufer, "AT\r\n");
-    sim800L_err_t res = SIM800L_SEND_AT_CMD(sim800L, AT, response, 10, 1, 1000);
+    sim800L_err_t res = SIM800L_SEND_AT_CMD(sim800L, HELLO, response, 10, 1, 1000);
     if (res != SIM800L_OK)
         return res;
 
-    if (strcmp(response, "OK\r\n") != 0)
+    if (strcmp(response, "\r\nOK\r\n") != 0)
+        return SIM800L_ERROR;
+
+    return SIM800L_OK;
+}
+static inline sim800L_err_t SIM800L_ATE(sim800L_t *sim800L)
+{
+    char response[10] = {0};
+    //char bufer[30];
+    //sprintf(bufer, "AT\r\n");
+    sim800L_err_t res = SIM800L_SEND_AT_CMD(sim800L, ECHO_OFF, response, 10, 1, 1000);
+    if (res != SIM800L_OK)
+        return res;
+
+    if (strcmp(response, "\r\nOK\r\n") != 0)
         return SIM800L_ERROR;
 
     return SIM800L_OK;

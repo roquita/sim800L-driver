@@ -1,3 +1,4 @@
 #pragma once
 
-#define AT "AT"
+#define HELLO "AT"
+#define ECHO_OFF "ATE0"
