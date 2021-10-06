@@ -1,9 +1,12 @@
 #pragma once
-#include <string.h>
 
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
 #include "sim800L.h"
-#include "at_cmd.h"
-#include "sim800L.h"
+
+#define COLOR_CYAN "\033[0;36m"
+#define COLOR_WHITE "\033[0;37m"
 
 #define SIM800L_ENABLE(p_sim800L)            \
     {                                        \
@@ -37,9 +40,20 @@
     {                                       \
         p_sim800L->power_gpio_set_level(0); \
     }
+
 static inline sim800L_err_t SIM800L_WAIT_FOR_RESPONSE(sim800L_t *sim800L, char *response, int max_len, int lines, int32_t timeout)
-{ 
-    lines++;// \r\n at start of response
+{
+    char final_char = '\n';
+    if (lines == -1)
+    {
+        final_char = '>';
+        lines = 1;
+    }
+    else
+    {
+        lines *= 2; // double \r\n per line
+    }
+
     int response_index = 0;
     int64_t start_ms = sim800L->get_time_ms();
     while (sim800L->get_time_ms() - start_ms < (int64_t)timeout)
@@ -57,7 +71,15 @@ static inline sim800L_err_t SIM800L_WAIT_FOR_RESPONSE(sim800L_t *sim800L, char *
             response[response_index] = byte;
             response_index++;
             max_len--;
-            //printf("%c", byte);
+
+#ifdef SIM800L_DEBUG
+            if (byte == '\n')
+                printf("<LF>");
+            else if (byte == '\r')
+                printf("<CR>");
+            else
+                printf(COLOR_CYAN "%c" COLOR_WHITE, byte);
+#endif
 
             if (byte == '\n' && prev_byte == '\r')
             {
@@ -65,7 +87,7 @@ static inline sim800L_err_t SIM800L_WAIT_FOR_RESPONSE(sim800L_t *sim800L, char *
             }
             prev_byte = byte;
 
-            if (lines <= 0 && max_len >= 1)
+            if (lines <= 0 && max_len >= 1 && byte == final_char)
             {
                 response[response_index] = 0;
                 return SIM800L_OK;
@@ -87,7 +109,7 @@ static inline sim800L_err_t SIM800L_SEND_AT_CMD(sim800L_t *sim800L, char *cmd, c
     sim800L->flush();
 
 #ifdef SIM800L_DEBUG
-    printf("\"%s\" --->\n", cmd);
+    printf("\"%s\" ---> ", cmd);
 #endif
 
     sim800L_err_t res = sim800L->send_string(cmd);
@@ -95,7 +117,7 @@ static inline sim800L_err_t SIM800L_SEND_AT_CMD(sim800L_t *sim800L, char *cmd, c
     if (res != SIM800L_OK)
     {
 #ifdef SIM800L_DEBUG
-        printf("        ---> send_string failed\n");
+        printf("\n        ---> send_string failed\n");
 #endif
         return res;
     }
@@ -103,43 +125,17 @@ static inline sim800L_err_t SIM800L_SEND_AT_CMD(sim800L_t *sim800L, char *cmd, c
     res = SIM800L_WAIT_FOR_RESPONSE(sim800L, response, max_len, lines, timeout);
 
 #ifdef SIM800L_DEBUG
+
+    printf("\n");
     if (res != SIM800L_OK)
     {
         printf("        <--- error: %u \n", res);
-    }
+    } /*
     else
     {
-        printf("        <--- \"%s\"\n", response);
-    }
+        //printf("        <--- \"%s\"\n", response);
+    }*/
 #endif
 
     return res;
-}
-static inline sim800L_err_t SIM800L_AT(sim800L_t *sim800L)
-{
-    char response[10] = {0};
-    //char bufer[30];
-    //sprintf(bufer, "AT\r\n");
-    sim800L_err_t res = SIM800L_SEND_AT_CMD(sim800L, HELLO, response, 10, 1, 1000);
-    if (res != SIM800L_OK)
-        return res;
-
-    if (strcmp(response, "\r\nOK\r\n") != 0)
-        return SIM800L_ERROR;
-
-    return SIM800L_OK;
-}
-static inline sim800L_err_t SIM800L_ATE(sim800L_t *sim800L)
-{
-    char response[10] = {0};
-    //char bufer[30];
-    //sprintf(bufer, "AT\r\n");
-    sim800L_err_t res = SIM800L_SEND_AT_CMD(sim800L, ECHO_OFF, response, 10, 1, 1000);
-    if (res != SIM800L_OK)
-        return res;
-
-    if (strcmp(response, "\r\nOK\r\n") != 0)
-        return SIM800L_ERROR;
-
-    return SIM800L_OK;
 }

@@ -133,7 +133,32 @@ void app_main(void)
     modem.reset_gpio_set_level = modem_reset_gpio_set_level;
     modem.power_gpio_set_level = modem_power_gpio_set_level;
     modem.get_time_ms = modem_get_time_ms;
+
     sim800L_err_t res = sim800L_init(&modem);
-    if(res == SIM800L_OK)
-        printf("sim800L_init SUCCESS, res = %u\n", res);
+    printf("sim800L_init , res = %u\n\n", res);
+
+    int mvolts = -1;
+    res = sim800_battery_level(&modem, &mvolts);
+    printf("sim800_battery_level , res = %u, mvolts = %i\n\n", res, mvolts);
+
+    int status = -1;
+    int adc = -1;
+    res = sim800_read_adc(&modem, &status, &adc);
+    printf("sim800_read_adc , res = %u, status = %i, adc= %imv\n\n", res, status, adc);
+
+    res = sim800_wait_until_detect_signal(&modem, 10000);
+    if (res != SIM800L_OK)
+    {
+        printf("sim800_wait_until_detect_signal, res = %u\n", res);
+        printf("timeout on detect signal. Restarting ...\n");
+        esp_restart();
+    }
+
+    res = sim800_link_net(&modem);
+    printf("sim800_link_net , res = %u\n\n", res);
+
+    char body[100]={0};
+    sprintf(body , "GET /wiki/images/1/15/Hello.txt HTTP/1.0");
+    res = sim800_tcp_get_request(&modem, "exploreembedded.com", 80, body);
+    printf("sim800_link_net , res = %u\n\n", res);
 }

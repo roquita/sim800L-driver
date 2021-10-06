@@ -14,7 +14,7 @@ extern "C"
         SIM800L_TIMEOUT,
         SIM800L_BUS_FAULT,
         SIM800L_INVALID_ARG,
-        SIM800L_OVERFLOW
+        SIM800L_OVERFLOW,
     } sim800L_err_t;
 
     typedef sim800L_err_t (*sim800L_send_string_t)(char *string);
@@ -41,8 +41,13 @@ extern "C"
     } sim800L_t;
 
     sim800L_err_t sim800L_init(sim800L_t *sim800L);
-    /*
+
     sim800L_err_t sim800_link_net(sim800L_t *sim800L);
+    sim800L_err_t sim800_battery_level(sim800L_t *sim800L, int *mvolt);
+    sim800L_err_t sim800_read_adc(sim800L_t *sim800L, int *status, int *value);
+    sim800L_err_t sim800_wait_until_detect_signal(sim800L_t *sim800L, int timeout_ms);
+    sim800L_err_t sim800_tcp_get_request(sim800L_t *sim800L, char *domain, int port, char *body);
+    /*
     sim800L_err_t sim800L_unlink_net(sim800L_t *sim800L);
     sim800L_err_t sim800L_tcp_connect(sim800L_t *sim800L, char *ip, int port, bool secure);
     sim800L_err_t sim800L_tcp_send(sim800L_t *sim800L, char *data, int len);
