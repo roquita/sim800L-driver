@@ -154,7 +154,7 @@ void app_main(void)
         esp_restart();
     }
 
-    res = sim800_link_net(&modem);
+    res = sim800_link_net(&modem, "entel", "", "");
     printf("sim800_link_net , res = %u\n\n", res);
     if (res != SIM800L_OK)
     {
@@ -163,8 +163,22 @@ void app_main(void)
     }
 
     char torcv[1000] = {0};
-    res = sim800_tcp_get_request(&modem, "exploreembedded.com", 80, "GET /wiki/images/1/15/Hello.txt HTTP/1.0\n\n", torcv, 1000);
-    printf("sim800_link_net , res = %u\n\n", res);
+    res = sim800_tcp_http_request(&modem, "exploreembedded.com", 80, "GET /wiki/images/1/15/Hello.txt HTTP/1.0\n\n", torcv, 1000);
+    printf("sim800_tcp_get_test , res = %u\n\n", res);
     if (res == SIM800L_OK)
-        printf("RECEIVED:\n\"%s\"\n", torcv);
+        printf("RECEIVED:\n\"%s\"\n\n", torcv);
+    memset(torcv, 0, 1000);
+
+    res = sim800_tcp_http_request(&modem, "ptsv2.com", 80,
+                                  "POST /t/7jv8h-1545446925/post HTTP/1.0\n"
+                                  "Accept:*/*\n"
+                                  "Host: ptsv2.com\n"
+                                  "Content-Length:7\n"
+                                  "Content-Type: application/x-www-form-urlencoded\n\n"
+                                  "temp=89\n\n",
+                                  torcv, 1000);
+    printf("sim800_tcp_post_test , res = %u\n\n", res);
+    if (res == SIM800L_OK)
+        printf("RECEIVED:\n\"%s\"\n\n", torcv);
+    memset(torcv, 0, 1000);
 }

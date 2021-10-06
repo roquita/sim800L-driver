@@ -184,11 +184,8 @@ static inline sim800L_err_t SIM800L_CIPSEND(sim800L_t *sim800L, char *tosend)
     // PARSE ANSWER
     char *ok = strtok(response, "\r\n");
 
-    if (ok == 0 || strcmp(ok, "SEND OK") != 0)
-    {
-        printf("2*\n");
-        return SIM800L_ERROR;
-    }
+    if (ok == 0 || strcmp(ok, "SEND OK") != 0)    
+        return SIM800L_ERROR;    
 
     return SIM800L_OK;
 }

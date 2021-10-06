@@ -40,8 +40,9 @@
     {                                       \
         p_sim800L->power_gpio_set_level(0); \
     }
-static inline sim800L_err_t SIM800L_WAIT_FOR_BYTES(sim800L_t *sim800L, char *response, int max_len, int32_t timeout)
+static inline sim800L_err_t SIM800L_WAIT_FOR_BYTES(sim800L_t *sim800L, char *tofind, char *response, int max_len, int32_t timeout)
 {
+    char prev_byte = 0;
     int response_index = 0;
     int64_t start_ms = sim800L->get_time_ms();
     while (sim800L->get_time_ms() - start_ms < (int64_t)timeout)
@@ -60,12 +61,23 @@ static inline sim800L_err_t SIM800L_WAIT_FOR_BYTES(sim800L_t *sim800L, char *res
 
 #ifdef SIM800L_DEBUG
             if (byte == '\n')
-                printf("<LF>");
+                printf("<LF>\n");
             else if (byte == '\r')
                 printf("<CR>");
             else
                 printf(COLOR_CYAN "%c" COLOR_WHITE, byte);
 #endif
+
+            if (byte == '\n' && prev_byte == '\r')
+            {
+                char *p = strstr(response, tofind);
+                if (p != 0)
+                {
+                    *p = 0; // remove "tofind" from torcv
+                    return SIM800L_OK;
+                }
+            }
+            prev_byte = byte;
 
             if (max_len <= 0)
             {
@@ -75,7 +87,7 @@ static inline sim800L_err_t SIM800L_WAIT_FOR_BYTES(sim800L_t *sim800L, char *res
 
         sim800L->delay_ms(1);
     }
-    return SIM800L_OK;
+    return SIM800L_TIMEOUT;
 }
 static inline sim800L_err_t SIM800L_WAIT_FOR_RESPONSE(sim800L_t *sim800L, char *response, int max_len, int lines, int32_t timeout)
 {

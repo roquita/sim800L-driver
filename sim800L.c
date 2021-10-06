@@ -24,16 +24,8 @@ sim800L_err_t sim800L_init(sim800L_t *sim800L)
     return res ? SIM800L_OK : SIM800L_ERROR;
 }
 
-sim800L_err_t sim800_link_net(sim800L_t *sim800L)
-{ /*
-AT+CIPSHUT ---> \CR\LFSHUT OK\CR\LF
-AT+CIPMUX=0 ---> \CR\LFOK\CR\LF
-AT+CGATT=1 ---> \CR\LFOK\CR\LF
-AT+CSTT="entel.pe","","" ---> \CR\LFOK\CR\LF
-AT+CIICR ---> \CR\LFOK\CR\LF
-AT+CIFSR ---> \CR\LF10.207.242.114\CR\LF
-
-*/
+sim800L_err_t sim800_link_net(sim800L_t *sim800L, char *apn, char *username, char *password)
+{
     sim800L_err_t res;
 
     SIM800L_CIPSHUT(sim800L);
@@ -46,7 +38,7 @@ AT+CIFSR ---> \CR\LF10.207.242.114\CR\LF
     if (res != SIM800L_OK)
         return res;
 */
-    res = SIM800L_CSTT(sim800L, "entel.pe", "", "");
+    res = SIM800L_CSTT(sim800L, apn, username, password);
     if (res != SIM800L_OK)
         return res;
 
@@ -90,7 +82,7 @@ sim800L_err_t sim800_wait_until_detect_signal(sim800L_t *sim800L, int timeout_ms
     return SIM800L_OK;
 }
 
-sim800L_err_t sim800_tcp_get_request(sim800L_t *sim800L, char *domain, int port, char *tosend, char *torcv, int torcv_len)
+sim800L_err_t sim800_tcp_http_request(sim800L_t *sim800L, char *domain, int port, char *tosend, char *torcv, int torcv_len)
 {
     sim800L_err_t res;
 
@@ -106,7 +98,7 @@ sim800L_err_t sim800_tcp_get_request(sim800L_t *sim800L, char *domain, int port,
     printf("\nwaiting for server response...\n");
 #endif
 
-    res = SIM800L_WAIT_FOR_BYTES(sim800L, torcv, torcv_len, 10000);// timeout depends of the server
+    res = SIM800L_WAIT_FOR_BYTES(sim800L, "\r\nCLOSED\r\n", torcv, torcv_len, 15000);
 #ifdef SIM800L_DEBUG
     printf("\n");
 #endif
