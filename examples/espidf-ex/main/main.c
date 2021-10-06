@@ -147,18 +147,24 @@ void app_main(void)
     printf("sim800_read_adc , res = %u, status = %i, adc= %imv\n\n", res, status, adc);
 
     res = sim800_wait_until_detect_signal(&modem, 10000);
+    printf("sim800_wait_until_detect_signal, res = %u\n", res);
     if (res != SIM800L_OK)
     {
-        printf("sim800_wait_until_detect_signal, res = %u\n", res);
         printf("timeout on detect signal. Restarting ...\n");
         esp_restart();
     }
 
     res = sim800_link_net(&modem);
     printf("sim800_link_net , res = %u\n\n", res);
+    if (res != SIM800L_OK)
+    {
+        printf("error while connecting to net. Restarting ...\n");
+        esp_restart();
+    }
 
-    char body[100]={0};
-    sprintf(body , "GET /wiki/images/1/15/Hello.txt HTTP/1.0");
-    res = sim800_tcp_get_request(&modem, "exploreembedded.com", 80, body);
+    char torcv[1000] = {0};
+    res = sim800_tcp_get_request(&modem, "exploreembedded.com", 80, "GET /wiki/images/1/15/Hello.txt HTTP/1.0\n\n", torcv, 1000);
     printf("sim800_link_net , res = %u\n\n", res);
+    if (res == SIM800L_OK)
+        printf("RECEIVED:\n\"%s\"\n", torcv);
 }

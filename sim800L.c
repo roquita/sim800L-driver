@@ -90,39 +90,30 @@ sim800L_err_t sim800_wait_until_detect_signal(sim800L_t *sim800L, int timeout_ms
     return SIM800L_OK;
 }
 
-sim800L_err_t sim800_tcp_get_request(sim800L_t *sim800L, char *domain, int port, char *body)
+sim800L_err_t sim800_tcp_get_request(sim800L_t *sim800L, char *domain, int port, char *tosend, char *torcv, int torcv_len)
 {
-    /*
-AT+CIPSTART="TCP","exploreembedded.com","80" ---> \CR\LFOK\CR\LF\CR\LFCONNECT OK\CR\LF
-AT+CIPSEND ---> \CR\LF>
-GET /wiki/images/1/15/Hello.txt HTTP/1.0
-\0x0a\0x0a\0x1a    (\LF\LF\x1A)(\x1A = ctrl+z)
-AT+CIPCLOSE
-
-*/
     sim800L_err_t res;
 
     res = SIM800L_CIPSTART(sim800L, "TCP", domain, port);
     if (res != SIM800L_OK)
         return res;
 
-    res = SIM800L_CIPSEND(sim800L);
+    res = SIM800L_CIPSEND(sim800L, tosend);
     if (res != SIM800L_OK)
         return res;
 
-    sim800L->send_string(body);
-    char end[] = {10, 10, 26, 0};
-    sim800L->send_string(end);
+#ifdef SIM800L_DEBUG
+    printf("\nwaiting for server response...\n");
+#endif
 
-    char response[1000] = {0};
-    res = SIM800L_WAIT_FOR_RESPONSE(sim800L, response, 1000, 7, 10000);
+    res = SIM800L_WAIT_FOR_BYTES(sim800L, torcv, torcv_len, 10000);// timeout depends of the server
 #ifdef SIM800L_DEBUG
     printf("\n");
 #endif
     if (res != SIM800L_OK)
         return res;
 
-    res = SIM800L_CIPCLOSE(sim800L);
+    SIM800L_CIPCLOSE(sim800L);
 
-    return SIM800L_OK;
+    return res;
 }

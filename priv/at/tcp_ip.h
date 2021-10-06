@@ -81,7 +81,7 @@ static inline sim800L_err_t SIM800L_CIICR(sim800L_t *sim800L)
 
     // SEND AND RECEIVE ANSWER
     sim800L_err_t res;
-    res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 1, 3000);
+    res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 1, 5000);
 
     if (res != SIM800L_OK)
         return res;
@@ -147,9 +147,9 @@ static inline sim800L_err_t SIM800L_CIPSTART(sim800L_t *sim800L, char *mode, cha
     return SIM800L_OK;
 }
 
-static inline sim800L_err_t SIM800L_CIPSEND(sim800L_t *sim800L)
+static inline sim800L_err_t SIM800L_CIPSEND(sim800L_t *sim800L, char *tosend)
 {
-    char response[10] = {0};
+    char response[15] = {0};
     char at_cmd[15] = {0};
 
     // MAKE AT COMMAND
@@ -163,10 +163,32 @@ static inline sim800L_err_t SIM800L_CIPSEND(sim800L_t *sim800L)
         return res;
 
     // PARSE ANSWER
-    char * final_char = strtok(response, "\r\n");
+    char *final_char = strtok(response, "\r\n");
 
     if (final_char == 0 || strcmp(final_char, ">") != 0)
         return SIM800L_ERROR;
+
+    // SEND BODY
+    sim800L->flush();
+    sim800L->send_string(tosend);
+
+    // FINISH BODY
+    char end[] = {26, 0};
+    sim800L->send_string(end);
+
+    // WAIT FOR 2CND ANSWER
+    res = SIM800L_WAIT_FOR_RESPONSE(sim800L, response, sizeof(response) / sizeof(char), 1, 2000);
+    if (res != SIM800L_OK)    
+        return res;    
+
+    // PARSE ANSWER
+    char *ok = strtok(response, "\r\n");
+
+    if (ok == 0 || strcmp(ok, "SEND OK") != 0)
+    {
+        printf("2*\n");
+        return SIM800L_ERROR;
+    }
 
     return SIM800L_OK;
 }
@@ -183,7 +205,6 @@ static inline sim800L_err_t SIM800L_CIPCLOSE(sim800L_t *sim800L)
     sim800L_err_t res;
     res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 1, 1000);
 
-/*
     if (res != SIM800L_OK)
         return res;
 
@@ -191,7 +212,6 @@ static inline sim800L_err_t SIM800L_CIPCLOSE(sim800L_t *sim800L)
     char *ok = strtok(response, "\r\n");
     if (ok == 0 || strcmp(ok, "CLOSE OK") != 0)
         return SIM800L_ERROR;
-*/
 
     return SIM800L_OK;
 }

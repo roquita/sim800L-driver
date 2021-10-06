@@ -40,7 +40,43 @@
     {                                       \
         p_sim800L->power_gpio_set_level(0); \
     }
+static inline sim800L_err_t SIM800L_WAIT_FOR_BYTES(sim800L_t *sim800L, char *response, int max_len, int32_t timeout)
+{
+    int response_index = 0;
+    int64_t start_ms = sim800L->get_time_ms();
+    while (sim800L->get_time_ms() - start_ms < (int64_t)timeout)
+    {
+        while (sim800L->available() > 0)
+        {
+            char byte = 0;
+            sim800L_err_t res = sim800L->read_byte(&byte);
+            if (res != SIM800L_OK)
+            {
+                return SIM800L_BUS_FAULT;
+            }
+            response[response_index] = byte;
+            response_index++;
+            max_len--;
 
+#ifdef SIM800L_DEBUG
+            if (byte == '\n')
+                printf("<LF>");
+            else if (byte == '\r')
+                printf("<CR>");
+            else
+                printf(COLOR_CYAN "%c" COLOR_WHITE, byte);
+#endif
+
+            if (max_len <= 0)
+            {
+                return SIM800L_OVERFLOW;
+            }
+        }
+
+        sim800L->delay_ms(1);
+    }
+    return SIM800L_OK;
+}
 static inline sim800L_err_t SIM800L_WAIT_FOR_RESPONSE(sim800L_t *sim800L, char *response, int max_len, int lines, int32_t timeout)
 {
     char final_char = '\n';
