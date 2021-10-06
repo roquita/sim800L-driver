@@ -11,9 +11,12 @@
 
 sim800L_err_t sim800L_init(sim800L_t *sim800L)
 {
-    SIM800L_TURN_ON(sim800L);
-    sim800L->delay_ms(1000);
-    SIM800L_HW_RESET(sim800L);
+    // hold-up at start-up
+    sim800L->reset_gpio_set_level(1);
+
+    if (sim800L->power_gpio_set_level)
+        sim800L->power_gpio_set_level(1);
+
     sim800L->delay_ms(3000);
 
     SIM800L_ATE(sim800L, 0); // hold trash data from sim800L

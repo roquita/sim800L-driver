@@ -22,7 +22,6 @@ extern "C"
     typedef int (*sim800L_available_t)(void);
     typedef sim800L_err_t (*sim800L_flush_t)(void);
     typedef sim800L_err_t (*sim800L_delay_ms_t)(int ms);
-    typedef sim800L_err_t (*sim800L_pwrkey_gpio_set_level_t)(int level);
     typedef sim800L_err_t (*sim800L_reset_gpio_set_level_t)(int level);
     typedef sim800L_err_t (*sim800L_power_gpio_set_level_t)(int level);
     typedef int64_t (*sim800L_get_time_ms_t)(void);
@@ -35,7 +34,6 @@ extern "C"
         sim800L_flush_t flush;
         sim800L_delay_ms_t delay_ms;
         sim800L_get_time_ms_t get_time_ms;
-        sim800L_pwrkey_gpio_set_level_t pwrkey_gpio_set_level;
         sim800L_reset_gpio_set_level_t reset_gpio_set_level;
         sim800L_power_gpio_set_level_t power_gpio_set_level;
     } sim800L_t;
@@ -46,11 +44,7 @@ extern "C"
     sim800L_err_t sim800_read_adc(sim800L_t *sim800L, int *status, int *value);
     sim800L_err_t sim800_wait_until_detect_signal(sim800L_t *sim800L, int timeout_ms);
     sim800L_err_t sim800_tcp_http_request(sim800L_t *sim800L, char *domain, int port, char *tosend, char *torcv, int torcv_len);
-    /*
-    sim800L_err_t sim800L_unlink_net(sim800L_t *sim800L);
-    sim800L_err_t sim800L_tcp_connect(sim800L_t *sim800L, char *ip, int port, bool secure);
-    sim800L_err_t sim800L_tcp_send(sim800L_t *sim800L, char *data, int len);
-*/
+    
 
 #ifdef __cplusplus
 }

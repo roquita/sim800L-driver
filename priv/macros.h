@@ -32,14 +32,7 @@
         p_sim800L->delay_ms(105);           \
         p_sim800L->reset_gpio_set_level(1); \
     }
-#define SIM800L_TURN_ON(p_sim800L)          \
-    {                                       \
-        p_sim800L->power_gpio_set_level(1); \
-    }
-#define SIM800L_TURN_OFF(p_sim800L)         \
-    {                                       \
-        p_sim800L->power_gpio_set_level(0); \
-    }
+
 static inline sim800L_err_t SIM800L_WAIT_FOR_BYTES(sim800L_t *sim800L, char *tofind, char *response, int max_len, int32_t timeout)
 {
     char prev_byte = 0;

@@ -1,6 +1,36 @@
 
 #include "main.h"
 
+/*
+Connections for SIM800L-TTCALL BOARD:
+    https://www.google.com/search?q=esp32+sim800+ttcall&tbm=isch&ved=2ahUKEwjdlNG4z7bzAhV4jJUCHQIFBg4Q2-cCegQIABAA&oq=esp32+sim800+ttcall&gs_lcp=CgNpbWcQAzoHCCMQ7wMQJzoLCAAQgAQQsQMQgwE6CAgAEIAEELEDOgQIABADOgUIABCABDoECAAQQzoECAAQHjoGCAAQBRAeUPfYGVjclxpgp5kaaABwAHgAgAFaiAGkDJIBAjE5mAEAoAEBqgELZ3dzLXdpei1pbWfAAQE&sclient=img&ei=hgZeYd25KPiY1sQPgoqYcA&bih=955&biw=1920&client=firefox-b-d#imgrc=X2fIX6tJqOWVlM
+
+    sim800L                                esp32
+    rx(2.8v)  <--(voltage divider)---   gpio 27 (3.3v)
+    tx(2.8v)  --------(direct)------>   gpio 26 (3.3v)
+    rst       <--------(direct)------   gpio 5(3.3v)   [can be replaced by a pull-up to 3.3v] 
+    pwrkey                              nc
+    status                              nc
+    netlight                            nc
+
+    other:
+    power switch <--------(direct)------ gpio23 (PRESENT ON SIM800-TTCALL BOARD)
+
+Connections for SIM800L classic board:
+    https://www.google.com/search?q=sim800+module&client=firefox-b-d&sxsrf=AOaemvIWh51ENEigm7VYjvi5q5vsd-GAkg:1633552800022&source=lnms&tbm=isch&sa=X&ved=2ahUKEwjKsPey0rbzAhX9I7kGHSyxC9AQ_AUoAXoECAEQAw&biw=1920&bih=955&dpr=1#imgrc=N5-DbuJ5iQLeiM
+
+    sim800L                                esp32
+    rx(2.8v)  <--(voltage divider)---   gpio 27 (3.3v)
+    tx(2.8v)  --------(direct)------>   gpio 26 (3.3v)
+    rst       <--------(direct)------   gpio 5(3.3v)   [can be replaced by a pull-up to 3.3v] 
+    pwrkey                              nc
+    status                              nc
+    netlight                            nc
+   
+    - delete or change all about gpio-23 
+    - set this "modem.power_gpio_set_level = NULL" 
+*/
+
 sim800L_err_t modem_delay_ms(int ms)
 {
     for (int i = 0; i < ms; i++)
@@ -9,18 +39,7 @@ sim800L_err_t modem_delay_ms(int ms)
     }
     return SIM800L_OK;
 }
-sim800L_err_t modem_pwrkey_gpio_set_level(int level)
-{
-    if (level == 0)
-    {
-        gpio_set_level(GPIO_NUM_4, 0);
-    }
-    else
-    {
-        gpio_set_level(GPIO_NUM_4, 1);
-    }
-    return SIM800L_OK;
-}
+
 sim800L_err_t modem_reset_gpio_set_level(int level)
 {
     if (level == 0)
@@ -34,7 +53,7 @@ sim800L_err_t modem_reset_gpio_set_level(int level)
     return SIM800L_OK;
 }
 sim800L_err_t modem_power_gpio_set_level(int level)
-{
+{    
     if (level == 0)
     {
         gpio_set_level(GPIO_NUM_23, 0);
@@ -43,6 +62,7 @@ sim800L_err_t modem_power_gpio_set_level(int level)
     {
         gpio_set_level(GPIO_NUM_23, 1);
     }
+    
     return SIM800L_OK;
 }
 sim800L_err_t modem_send_string(char *string)
@@ -83,15 +103,6 @@ int64_t modem_get_time_ms()
 
 void app_main(void)
 {
-    const gpio_config_t pwrkey_config = {
-        .pin_bit_mask = 1ULL << GPIO_NUM_4,
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE,
-    };
-    gpio_config(&pwrkey_config);
-
     const gpio_config_t reset_config = {
         .pin_bit_mask = 1ULL << GPIO_NUM_5,
         .mode = GPIO_MODE_OUTPUT,
@@ -129,9 +140,9 @@ void app_main(void)
     modem.available = modem_available;
     modem.flush = modem_flush;
     modem.delay_ms = modem_delay_ms;
-    modem.pwrkey_gpio_set_level = modem_pwrkey_gpio_set_level;
     modem.reset_gpio_set_level = modem_reset_gpio_set_level;
-    modem.power_gpio_set_level = modem_power_gpio_set_level;
+    modem.power_gpio_set_level = modem_power_gpio_set_level; // for SIM800-TTCALL BOARD
+    //modem.power_gpio_set_level = NULL; // for classic sim800L board
     modem.get_time_ms = modem_get_time_ms;
 
     sim800L_err_t res = sim800L_init(&modem);
