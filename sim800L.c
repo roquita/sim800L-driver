@@ -1,13 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include "sim800L.h"
-#include "macros.h"
-#include "v25tr.h"
-#include "tcp_ip.h"
-#include "ip.h"
-#include "3gpp_ts27007.h"
-#include "special_simcom.h"
-#include "gprs.h"
+#include "priv/macros.h"
+#include "priv/at/all.h"
 
 sim800L_err_t sim800L_init(sim800L_t *sim800L)
 {
@@ -17,14 +11,21 @@ sim800L_err_t sim800L_init(sim800L_t *sim800L)
     if (sim800L->power_gpio_set_level)
         sim800L->power_gpio_set_level(1);
 
-    sim800L->delay_ms(3000);
+    sim800L_err_t res;
+    for (int i = 0; i < 10; i++)
+    {
+        res = SIM800L_ATE(sim800L, 0);
+        if (res == SIM800L_OK)
+            break;
+    }
+    if (res != SIM800L_OK)
+        return res;
 
-    SIM800L_ATE(sim800L, 0); // hold trash data from sim800L
-    sim800L_err_t res_ate = SIM800L_ATE(sim800L, 0);
-    sim800L_err_t res_at = SIM800L_AT(sim800L);
-    bool res = res_ate == SIM800L_OK && res_at == SIM800L_OK;
+    res = SIM800L_AT(sim800L);
+    if (res != SIM800L_OK)
+        return res;
 
-    return res ? SIM800L_OK : SIM800L_ERROR;
+    return SIM800L_OK;
 }
 
 sim800L_err_t sim800_link_net(sim800L_t *sim800L, char *apn, char *username, char *password)

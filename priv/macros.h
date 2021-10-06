@@ -3,7 +3,7 @@
 #include "string.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "sim800L.h"
+#include "../sim800L.h"
 
 #define COLOR_CYAN "\033[0;36m"
 #define COLOR_WHITE "\033[0;37m"
@@ -58,7 +58,7 @@ static inline sim800L_err_t SIM800L_WAIT_FOR_BYTES(sim800L_t *sim800L, char *tof
             else if (byte == '\r')
                 printf("<CR>");
             else
-                printf(COLOR_CYAN "%c" COLOR_WHITE, byte);
+                printf("%c", byte);
 #endif
 
             if (byte == '\n' && prev_byte == '\r')
@@ -119,7 +119,7 @@ static inline sim800L_err_t SIM800L_WAIT_FOR_RESPONSE(sim800L_t *sim800L, char *
             else if (byte == '\r')
                 printf("<CR>");
             else
-                printf(COLOR_CYAN "%c" COLOR_WHITE, byte);
+                printf("%c", byte);
 #endif
 
             if (byte == '\n' && prev_byte == '\r')
