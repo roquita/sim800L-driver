@@ -1,6 +1,6 @@
 #pragma once
 
-#define SIM800L_DEBUG
+//#define SIM800L_DEBUG
 
 #ifdef __cplusplus
 extern "C"

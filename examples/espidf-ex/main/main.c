@@ -31,6 +31,13 @@ Connections for SIM800L classic board:
     - set this "modem.power_gpio_set_level = NULL" 
 */
 
+// Select what you want to use:
+//#define USE_GET_REQUEST
+//#define USE_POST_REQUEST
+//#define USE_SSL_POST_REQUEST
+
+// Remeber to link_init() need your APN credentials, depends on your sim card provider
+
 sim800L_err_t modem_delay_ms(int ms)
 {
     for (int i = 0; i < ms; i++)
@@ -170,23 +177,31 @@ void app_main(void)
     if (res != SIM800L_OK)
     {
         printf("error while connecting to net. Restarting ...\n");
-        esp_restart();
+        goto end;
     }
 
     char torcv[1000] = {0};
+
+#ifdef USE_GET_REQUEST
     res = sim800_tcp_request(&modem, "exploreembedded.com", 80,
                              "GET /wiki/images/1/15/Hello.txt HTTP/1.0\n\n",
                              NULL,
                              NULL,
                              torcv, 1000, 0, 1);
     printf("sim800_tcp_get_test , res = %u\n\n", res);
-    if (res == SIM800L_OK)
-        printf("RECEIVED:\n\"%s\"\n\n", torcv);
+    if (res != SIM800L_OK)
+    {
+        printf("sim800_tcp_get_test failed. Restarting ...\n");
+        goto end;
+    }
+    printf("RECEIVED:\n\"%s\"\n\n", torcv);
     memset(torcv, 0, 1000);
+#endif
 
+#ifdef USE_POST_REQUEST
     res = sim800_tcp_request(&modem, "ptsv2.com", 80,
                              "POST /t/7jv8h-1545446925/post HTTP/1.0\n"
-                             "Accept:*/*\n"
+                             "Accept: */*\n"
                              "Host: ptsv2.com\n"
                              "Content-Length:7\n"
                              "Content-Type: application/x-www-form-urlencoded\n\n",
@@ -194,7 +209,46 @@ void app_main(void)
                              "\n\n",
                              torcv, 1000, 0, 1);
     printf("sim800_tcp_post_test , res = %u\n\n", res);
-    if (res == SIM800L_OK)
-        printf("RECEIVED:\n\"%s\"\n\n", torcv);
+    if (res != SIM800L_OK)
+    {
+        printf("sim800_tcp_post_test failed. Restarting ...\n");
+        goto end;
+    }
+    printf("RECEIVED:\n\"%s\"\n\n", torcv);
     memset(torcv, 0, 1000);
+#endif
+
+#ifdef USE_SSL_POST_REQUEST
+    char body[] = "temp=123456789xxyy";
+    char pre[500] = {0};
+    snprintf(pre, 500, "POST /2/files/upload HTTP/1.1\n"
+                       "Host: content.dropboxapi.com\n"
+                       "Authorization: Bearer vRV42LzfriIAAAAAAAAAAYu60VWQh7B9HUiw29lu-GEOvhspHrvOKVQ13fuS1p55\n"
+                       "Dropbox-API-Arg: {\"path\": \"/test.txt\","
+                       "\"mode\": \"add\","
+                       "\"autorename\": true,"
+                       "\"mute\": false,"
+                       "\"strict_conflict\": false}\n"
+                       "Content-Type: application/octet-stream\n"
+                       "Content-Length: %u\n"
+                       "Connection: close\n\n",
+             strlen(body));
+
+    res = sim800_tcp_request(&modem, "content.dropboxapi.com", 443,
+                             pre,
+                             body,
+                             NULL,
+                             torcv, 1000, 1, 1);
+    printf("dropbox upload file test , res = %u\n\n", res);
+    if (res != SIM800L_OK)
+    {
+        printf("dropbox upload file test failed. Restarting ...\n");
+        goto end;
+    }
+    printf("RECEIVED:\n\"%s\"\n\n", torcv);
+    memset(torcv, 0, 1000);
+#endif
+
+end:
+    printf("END\n");
 }

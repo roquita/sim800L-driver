@@ -130,7 +130,7 @@ static inline sim800L_err_t SIM800L_CIPSTART(sim800L_t *sim800L, char *protocol,
 
     // SEND AND RECEIVE ANSWER
     sim800L_err_t res;
-    res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 2, 5000);
+    res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 2, 10000);
 
     if (res != SIM800L_OK)
         return res;

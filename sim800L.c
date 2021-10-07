@@ -119,16 +119,7 @@ sim800L_err_t sim800_tcp_request(sim800L_t *sim800L, char *domain, int port,
             sim800L->send_string(post);
         sim800L->delay_ms(1000);
         sim800L->send_string("+++");
-        sim800L->delay_ms(1000);
-        /*
-        char response[20] = {0};
-        res = SIM800L_WAIT_FOR_RESPONSE(sim800L, response, sizeof(response) / sizeof(char), 1, 10000);
-        if (res != SIM800L_OK)
-            return res;
-
-        if (strstr(response, "\r\nOK\r\n") == 0)
-            return SIM800L_ERROR;
-            */
+        sim800L->delay_ms(1000);    
     }
 
 #ifdef SIM800L_DEBUG
