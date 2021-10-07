@@ -119,14 +119,14 @@ static inline sim800L_err_t SIM800L_CIFSR(sim800L_t *sim800L, char *ip_addr, int
     return SIM800L_OK;
 }
 
-static inline sim800L_err_t SIM800L_CIPSTART(sim800L_t *sim800L, char *mode, char *domain, int port)
+static inline sim800L_err_t SIM800L_CIPSTART(sim800L_t *sim800L, char *protocol, char *domain, int port, int mode)
 {
     char response[30] = {0};
     char at_cmd[100] = {0};
 
     // MAKE AT COMMAND
     snprintf(at_cmd, sizeof(at_cmd) / sizeof(char),
-             "AT+CIPSTART=\"%s\",\"%s\",\"%i\"", mode, domain, port);
+             "AT+CIPSTART=\"%s\",\"%s\",\"%i\"", protocol, domain, port);
 
     // SEND AND RECEIVE ANSWER
     sim800L_err_t res;
@@ -141,13 +141,13 @@ static inline sim800L_err_t SIM800L_CIPSTART(sim800L_t *sim800L, char *mode, cha
 
     if (ok == 0 || strcmp(ok, "OK") != 0)
         return SIM800L_ERROR;
-    if (result == 0 || strcmp(result, "CONNECT OK") != 0)
+    if (result == 0 || strcmp(result, mode == 0 ? "CONNECT OK" : "CONNECT") != 0)
         return SIM800L_ERROR;
 
     return SIM800L_OK;
 }
 
-static inline sim800L_err_t SIM800L_CIPSEND(sim800L_t *sim800L, char *tosend)
+static inline sim800L_err_t SIM800L_CIPSEND(sim800L_t *sim800L, char *pre, char *body, char *post)
 {
     char response[15] = {0};
     char at_cmd[15] = {0};
@@ -170,7 +170,12 @@ static inline sim800L_err_t SIM800L_CIPSEND(sim800L_t *sim800L, char *tosend)
 
     // SEND BODY
     sim800L->flush();
-    sim800L->send_string(tosend);
+    if (pre)
+        sim800L->send_string(pre);
+    if (body)
+        sim800L->send_string(body);
+    if (post)
+        sim800L->send_string(post);
 
     // FINISH BODY
     char end[] = {26, 0};
@@ -178,14 +183,14 @@ static inline sim800L_err_t SIM800L_CIPSEND(sim800L_t *sim800L, char *tosend)
 
     // WAIT FOR 2CND ANSWER
     res = SIM800L_WAIT_FOR_RESPONSE(sim800L, response, sizeof(response) / sizeof(char), 1, 2000);
-    if (res != SIM800L_OK)    
-        return res;    
+    if (res != SIM800L_OK)
+        return res;
 
     // PARSE ANSWER
     char *ok = strtok(response, "\r\n");
 
-    if (ok == 0 || strcmp(ok, "SEND OK") != 0)    
-        return SIM800L_ERROR;    
+    if (ok == 0 || strcmp(ok, "SEND OK") != 0)
+        return SIM800L_ERROR;
 
     return SIM800L_OK;
 }
@@ -208,6 +213,52 @@ static inline sim800L_err_t SIM800L_CIPCLOSE(sim800L_t *sim800L)
     // PARSE ANSWER
     char *ok = strtok(response, "\r\n");
     if (ok == 0 || strcmp(ok, "CLOSE OK") != 0)
+        return SIM800L_ERROR;
+
+    return SIM800L_OK;
+}
+
+static inline sim800L_err_t SIM800L_CIPSSL(sim800L_t *sim800L, bool enable)
+{
+    char response[10] = {0};
+    char at_cmd[20] = {0};
+
+    // MAKE AT COMMAND
+    sprintf(at_cmd, "AT+CIPSSL=%i", enable ? 1 : 0);
+
+    // SEND AND RECEIVE ANSWER
+    sim800L_err_t res;
+    res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 1, 2000);
+
+    if (res != SIM800L_OK)
+        return res;
+
+    // PARSE ANSWER
+    char *ok = strtok(response, "\r\n");
+    if (ok == 0 || strcmp(ok, "OK") != 0)
+        return SIM800L_ERROR;
+
+    return SIM800L_OK;
+}
+
+static inline sim800L_err_t SIM800L_CIPMODE(sim800L_t *sim800L, int mode)
+{
+    char response[10] = {0};
+    char at_cmd[20] = {0};
+
+    // MAKE AT COMMAND
+    sprintf(at_cmd, "AT+CIPMODE=%i", mode);
+
+    // SEND AND RECEIVE ANSWER
+    sim800L_err_t res;
+    res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 1, 2000);
+
+    if (res != SIM800L_OK)
+        return res;
+
+    // PARSE ANSWER
+    char *ok = strtok(response, "\r\n");
+    if (ok == 0 || strcmp(ok, "OK") != 0)
         return SIM800L_ERROR;
 
     return SIM800L_OK;

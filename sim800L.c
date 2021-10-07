@@ -28,7 +28,7 @@ sim800L_err_t sim800L_init(sim800L_t *sim800L)
     return SIM800L_OK;
 }
 
-sim800L_err_t sim800_link_net(sim800L_t *sim800L, char *apn, char *username, char *password)
+sim800L_err_t sim800_link_net(sim800L_t *sim800L, char *apn, char *username, char *password, int mode)
 {
     sim800L_err_t res;
 
@@ -37,11 +37,11 @@ sim800L_err_t sim800_link_net(sim800L_t *sim800L, char *apn, char *username, cha
     res = SIM800L_CIPMUX(sim800L, 0);
     if (res != SIM800L_OK)
         return res;
-    /*
-    res = SIM800L_CGATT(sim800L, 1);
+
+    res = SIM800L_CIPMODE(sim800L, mode);
     if (res != SIM800L_OK)
         return res;
-*/
+
     res = SIM800L_CSTT(sim800L, apn, username, password);
     if (res != SIM800L_OK)
         return res;
@@ -86,17 +86,50 @@ sim800L_err_t sim800_wait_until_detect_signal(sim800L_t *sim800L, int timeout_ms
     return SIM800L_OK;
 }
 
-sim800L_err_t sim800_tcp_http_request(sim800L_t *sim800L, char *domain, int port, char *tosend, char *torcv, int torcv_len)
+sim800L_err_t sim800_tcp_request(sim800L_t *sim800L, char *domain, int port,
+                                 char *pre, char *body, char *post,
+                                 char *torcv, int torcv_len, int ssl, int mode)
 {
     sim800L_err_t res;
 
-    res = SIM800L_CIPSTART(sim800L, "TCP", domain, port);
+    if (ssl > 0)
+    {
+        res = SIM800L_CIPSSL(sim800L, ssl);
+        if (res != SIM800L_OK)
+            return res;
+    }
+
+    res = SIM800L_CIPSTART(sim800L, "TCP", domain, port, mode);
     if (res != SIM800L_OK)
         return res;
 
-    res = SIM800L_CIPSEND(sim800L, tosend);
-    if (res != SIM800L_OK)
-        return res;
+    if (mode == 0) // normal
+    {
+        res = SIM800L_CIPSEND(sim800L, pre, body, post);
+        if (res != SIM800L_OK)
+            return res;
+    }
+    else // transparent
+    {
+        if (pre)
+            sim800L->send_string(pre);
+        if (body)
+            sim800L->send_string(body);
+        if (post)
+            sim800L->send_string(post);
+        sim800L->delay_ms(1000);
+        sim800L->send_string("+++");
+        sim800L->delay_ms(1000);
+        /*
+        char response[20] = {0};
+        res = SIM800L_WAIT_FOR_RESPONSE(sim800L, response, sizeof(response) / sizeof(char), 1, 10000);
+        if (res != SIM800L_OK)
+            return res;
+
+        if (strstr(response, "\r\nOK\r\n") == 0)
+            return SIM800L_ERROR;
+            */
+    }
 
 #ifdef SIM800L_DEBUG
     printf("\nwaiting for server response...\n");

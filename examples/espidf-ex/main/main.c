@@ -53,7 +53,7 @@ sim800L_err_t modem_reset_gpio_set_level(int level)
     return SIM800L_OK;
 }
 sim800L_err_t modem_power_gpio_set_level(int level)
-{    
+{
     if (level == 0)
     {
         gpio_set_level(GPIO_NUM_23, 0);
@@ -62,7 +62,7 @@ sim800L_err_t modem_power_gpio_set_level(int level)
     {
         gpio_set_level(GPIO_NUM_23, 1);
     }
-    
+
     return SIM800L_OK;
 }
 sim800L_err_t modem_send_string(char *string)
@@ -165,7 +165,7 @@ void app_main(void)
         esp_restart();
     }
 
-    res = sim800_link_net(&modem, "entel", "", "");
+    res = sim800_link_net(&modem, "entel", "", "", 1);
     printf("sim800_link_net , res = %u\n\n", res);
     if (res != SIM800L_OK)
     {
@@ -174,20 +174,25 @@ void app_main(void)
     }
 
     char torcv[1000] = {0};
-    res = sim800_tcp_http_request(&modem, "exploreembedded.com", 80, "GET /wiki/images/1/15/Hello.txt HTTP/1.0\n\n", torcv, 1000);
+    res = sim800_tcp_request(&modem, "exploreembedded.com", 80,
+                             "GET /wiki/images/1/15/Hello.txt HTTP/1.0\n\n",
+                             NULL,
+                             NULL,
+                             torcv, 1000, 0, 1);
     printf("sim800_tcp_get_test , res = %u\n\n", res);
     if (res == SIM800L_OK)
         printf("RECEIVED:\n\"%s\"\n\n", torcv);
     memset(torcv, 0, 1000);
 
-    res = sim800_tcp_http_request(&modem, "ptsv2.com", 80,
-                                  "POST /t/7jv8h-1545446925/post HTTP/1.0\n"
-                                  "Accept:*/*\n"
-                                  "Host: ptsv2.com\n"
-                                  "Content-Length:7\n"
-                                  "Content-Type: application/x-www-form-urlencoded\n\n"
-                                  "temp=89\n\n",
-                                  torcv, 1000);
+    res = sim800_tcp_request(&modem, "ptsv2.com", 80,
+                             "POST /t/7jv8h-1545446925/post HTTP/1.0\n"
+                             "Accept:*/*\n"
+                             "Host: ptsv2.com\n"
+                             "Content-Length:7\n"
+                             "Content-Type: application/x-www-form-urlencoded\n\n",
+                             "temp=89",
+                             "\n\n",
+                             torcv, 1000, 0, 1);
     printf("sim800_tcp_post_test , res = %u\n\n", res);
     if (res == SIM800L_OK)
         printf("RECEIVED:\n\"%s\"\n\n", torcv);

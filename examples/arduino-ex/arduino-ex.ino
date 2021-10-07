@@ -24,7 +24,7 @@ sim800L_err_t modem_power_gpio_set_level(int level)
 }
 sim800L_err_t modem_send_string(char *string)
 {
-  int txBytes = Serial2.write((uint8_t*)string, strlen(string));
+  int txBytes = Serial2.write((uint8_t *)string, strlen(string));
   if (txBytes <= 0)
     return SIM800L_INVALID_ARG;
   return SIM800L_OK;
@@ -33,7 +33,7 @@ sim800L_err_t modem_read_byte(char *byte)
 {
   int result = Serial2.read();
 
-  *byte = (char) result;
+  *byte = (char)result;
   return SIM800L_OK;
 }
 int modem_available()
@@ -51,7 +51,8 @@ int64_t modem_get_time_ms()
 {
   return (int64_t)millis();
 }
-void setup() {
+void setup()
+{
   Serial.begin(115200); // terminal
 
   pinMode(5, OUTPUT);
@@ -94,7 +95,7 @@ void setup() {
     esp_restart();
   }
 
-  res = sim800_link_net(&modem, "entel", "", "");
+  res = sim800_link_net(&modem, "entel", "", "", 0);
   printf("sim800_link_net , res = %u\n\n", res);
   if (res != SIM800L_OK)
   {
@@ -103,7 +104,7 @@ void setup() {
   }
 
   char torcv[1000] = {0};
-  res = sim800_tcp_http_request(&modem, "exploreembedded.com", 80, "GET /wiki/images/1/15/Hello.txt HTTP/1.0\n\n", torcv, 1000);
+  res = sim800_tcp_http_request(&modem, "exploreembedded.com", 80, "GET /wiki/images/1/15/Hello.txt HTTP/1.0\n\n", torcv, 1000, 0, 0);
   printf("sim800_tcp_get_test , res = %u\n\n", res);
   if (res == SIM800L_OK)
     printf("RECEIVED:\n\"%s\"\n\n", torcv);
@@ -116,14 +117,15 @@ void setup() {
                                 "Content-Length:7\n"
                                 "Content-Type: application/x-www-form-urlencoded\n\n"
                                 "temp=89\n\n",
-                                torcv, 1000);
+                                torcv, 1000, 0, 0);
   printf("sim800_tcp_post_test , res = %u\n\n", res);
   if (res == SIM800L_OK)
     printf("RECEIVED:\n\"%s\"\n\n", torcv);
   memset(torcv, 0, 1000);
 }
 
-void loop() {
+void loop()
+{
   // put your main code here, to run repeatedly:
   delay(1000);
 }

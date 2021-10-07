@@ -39,12 +39,13 @@ extern "C"
     } sim800L_t;
 
     sim800L_err_t sim800L_init(sim800L_t *sim800L);
-    sim800L_err_t sim800_link_net(sim800L_t *sim800L, char *apn, char *username, char *password);
+    sim800L_err_t sim800_link_net(sim800L_t *sim800L, char *apn, char *username, char *password, int mode);
     sim800L_err_t sim800_battery_level(sim800L_t *sim800L, int *mvolt);
     sim800L_err_t sim800_read_adc(sim800L_t *sim800L, int *status, int *value);
     sim800L_err_t sim800_wait_until_detect_signal(sim800L_t *sim800L, int timeout_ms);
-    sim800L_err_t sim800_tcp_http_request(sim800L_t *sim800L, char *domain, int port, char *tosend, char *torcv, int torcv_len);
-    
+    sim800L_err_t sim800_tcp_request(sim800L_t *sim800L, char *domain, int port,
+                                     char *pre, char *body, char *post,
+                                     char *torcv, int torcv_len, int ssl, int mode);
 
 #ifdef __cplusplus
 }
