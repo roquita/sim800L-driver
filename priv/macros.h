@@ -153,8 +153,8 @@ static inline sim800L_err_t SIM800L_SEND_AT_CMD(sim800L_t *sim800L, char *cmd, c
     printf("\"%s\" ---> ", cmd);
 #endif
 
-    sim800L_err_t res = sim800L->send_string(cmd);
-    res = sim800L->send_string("\r\n");
+    sim800L_err_t res = sim800L->write((uint8_t*)cmd, strlen(cmd));
+    res = sim800L->write((uint8_t*)"\r\n", 2);
     if (res != SIM800L_OK)
     {
 #ifdef SIM800L_DEBUG

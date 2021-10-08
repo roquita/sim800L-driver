@@ -147,7 +147,7 @@ static inline sim800L_err_t SIM800L_CIPSTART(sim800L_t *sim800L, char *protocol,
     return SIM800L_OK;
 }
 
-static inline sim800L_err_t SIM800L_CIPSEND(sim800L_t *sim800L, char *pre, char *body, char *post)
+static inline sim800L_err_t SIM800L_CIPSEND(sim800L_t *sim800L, char *pre, uint8_t *body, int size, char *post)
 {
     char response[15] = {0};
     char at_cmd[15] = {0};
@@ -171,15 +171,15 @@ static inline sim800L_err_t SIM800L_CIPSEND(sim800L_t *sim800L, char *pre, char 
     // SEND BODY
     sim800L->flush();
     if (pre)
-        sim800L->send_string(pre);
+        sim800L->write((uint8_t *)pre, strlen(pre));
     if (body)
-        sim800L->send_string(body);
+        sim800L->write(body, size);
     if (post)
-        sim800L->send_string(post);
+        sim800L->write((uint8_t *)post, strlen(post));
 
     // FINISH BODY
     char end[] = {26, 0};
-    sim800L->send_string(end);
+    sim800L->write((uint8_t *)end, 1);
 
     // WAIT FOR 2CND ANSWER
     res = SIM800L_WAIT_FOR_RESPONSE(sim800L, response, sizeof(response) / sizeof(char), 1, 2000);

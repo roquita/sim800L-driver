@@ -17,7 +17,7 @@ extern "C"
         SIM800L_OVERFLOW,
     } sim800L_err_t;
 
-    typedef sim800L_err_t (*sim800L_send_string_t)(char *string);
+    typedef sim800L_err_t (*sim800L_write_t)(uint8_t *bufer, int size);
     typedef sim800L_err_t (*sim800L_read_byte_t)(char *byte);
     typedef int (*sim800L_available_t)(void);
     typedef sim800L_err_t (*sim800L_flush_t)(void);
@@ -28,7 +28,7 @@ extern "C"
 
     typedef struct
     {
-        sim800L_send_string_t send_string;
+        sim800L_write_t write;
         sim800L_read_byte_t read_byte;
         sim800L_available_t available;
         sim800L_flush_t flush;
@@ -44,7 +44,7 @@ extern "C"
     sim800L_err_t sim800_read_adc(sim800L_t *sim800L, int *status, int *value);
     sim800L_err_t sim800_wait_until_detect_signal(sim800L_t *sim800L, int timeout_ms);
     sim800L_err_t sim800_tcp_request(sim800L_t *sim800L, char *domain, int port,
-                                     char *pre, char *body, char *post,
+                                     char *pre, uint8_t *body, int size, char *post,
                                      char *torcv, int torcv_len, int ssl, int mode);
 
 #ifdef __cplusplus

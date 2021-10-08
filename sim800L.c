@@ -87,7 +87,7 @@ sim800L_err_t sim800_wait_until_detect_signal(sim800L_t *sim800L, int timeout_ms
 }
 
 sim800L_err_t sim800_tcp_request(sim800L_t *sim800L, char *domain, int port,
-                                 char *pre, char *body, char *post,
+                                 char *pre, uint8_t *body, int size, char *post,
                                  char *torcv, int torcv_len, int ssl, int mode)
 {
     sim800L_err_t res;
@@ -105,21 +105,21 @@ sim800L_err_t sim800_tcp_request(sim800L_t *sim800L, char *domain, int port,
 
     if (mode == 0) // normal
     {
-        res = SIM800L_CIPSEND(sim800L, pre, body, post);
+        res = SIM800L_CIPSEND(sim800L, pre, (uint8_t *)body, size, post);
         if (res != SIM800L_OK)
             return res;
     }
     else // transparent
     {
         if (pre)
-            sim800L->send_string(pre);
+            sim800L->write((uint8_t *)pre, strlen(pre));
         if (body)
-            sim800L->send_string(body);
+            sim800L->write(body, size);
         if (post)
-            sim800L->send_string(post);
+            sim800L->write((uint8_t *)post, strlen(post));
         sim800L->delay_ms(1000);
-        sim800L->send_string("+++");
-        sim800L->delay_ms(1000);    
+        sim800L->write((uint8_t *)"+++", 3);
+        sim800L->delay_ms(1000);
     }
 
 #ifdef SIM800L_DEBUG
