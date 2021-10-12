@@ -83,6 +83,7 @@ sim800L_err_t sim800_wait_until_detect_signal(sim800L_t *sim800L, int timeout_ms
 
     } while (!(rssi >= 1 && rssi <= 30));
 
+    printf("rssi: %i\n", rssi);
     return SIM800L_OK;
 }
 
@@ -90,6 +91,8 @@ sim800L_err_t sim800_tcp_request(sim800L_t *sim800L, char *domain, int port,
                                  char *pre, uint8_t *body, int size, char *post,
                                  char *torcv, int torcv_len, int ssl, int mode)
 {
+    //SIM800L_CIPCLOSE(sim800L);
+
     sim800L_err_t res;
 
     if (ssl > 0)
@@ -101,7 +104,11 @@ sim800L_err_t sim800_tcp_request(sim800L_t *sim800L, char *domain, int port,
 
     res = SIM800L_CIPSTART(sim800L, "TCP", domain, port, mode);
     if (res != SIM800L_OK)
+    {
+        //SIM800L_CIPCLOSE(sim800L);
+        SIM800L_ATE(sim800L, 0);
         return res;
+    }
 
     if (mode == 0) // normal
     {
