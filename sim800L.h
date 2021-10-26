@@ -1,6 +1,6 @@
 #pragma once
 
-//#define SIM800L_DEBUG
+#define SIM800L_DEBUG
 
 #ifdef __cplusplus
 extern "C"
@@ -46,6 +46,8 @@ extern "C"
     sim800L_err_t sim800_tcp_request(sim800L_t *sim800L, char *domain, int port,
                                      char *pre, uint8_t *body, int size, char *post,
                                      char *torcv, int torcv_len, int ssl, int mode);
+    sim800L_err_t sim800_enable_time_by_net(sim800L_t *sim800L);
+    sim800L_err_t sim800_gettimestamp_by_net(sim800L_t *sim800L, uint32_t *timestamp);
 
 #ifdef __cplusplus
 }

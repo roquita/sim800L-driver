@@ -8,10 +8,13 @@ sim800L_err_t sim800L_init(sim800L_t *sim800L)
     // hold-up at start-up
     sim800L->reset_gpio_set_level(1);
 
+    // turn on power if it exists
     if (sim800L->power_gpio_set_level)
         sim800L->power_gpio_set_level(1);
 
     sim800L_err_t res;
+
+    // disable sim800 echo
     for (int i = 0; i < 10; i++)
     {
         res = SIM800L_ATE(sim800L, 0);
@@ -21,9 +24,24 @@ sim800L_err_t sim800L_init(sim800L_t *sim800L)
     if (res != SIM800L_OK)
         return res;
 
+    // check for sim800 module
     res = SIM800L_AT(sim800L);
     if (res != SIM800L_OK)
         return res;
+  
+
+    // check for sim card
+    for (int i = 0; i < 5; i++)
+    {
+        res = SIM800L_CPIN_QUERY(sim800L);
+        if (res == SIM800L_OK)
+            break;
+    }
+    if (res != SIM800L_OK)
+    {
+        printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
+        return res;
+    }
 
     return SIM800L_OK;
 }
@@ -143,4 +161,87 @@ sim800L_err_t sim800_tcp_request(sim800L_t *sim800L, char *domain, int port,
     SIM800L_CIPCLOSE(sim800L);
 
     return res;
+}
+
+sim800L_err_t sim800_enable_time_by_net(sim800L_t *sim800L)
+{
+    sim800L_err_t res;
+
+    // check for net-time enabled
+    int mode = -1;
+    /*
+    res = SIM800L_CLTS_QUERY(sim800L, &mode);
+    if (res != SIM800L_OK)
+    {
+        printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
+        return res;
+    }
+
+    // if not ,then enable it
+    if (mode == 0)
+    {
+        */
+    res = SIM800L_CLTS(sim800L, 1);
+    if (res != SIM800L_OK)
+    {
+        printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
+        return res;
+    }
+
+    // save in profile 0
+    res = SIM800L_ATW(sim800L);
+    if (res != SIM800L_OK)
+        return res;
+
+    res = SIM800L_CLTS_QUERY(sim800L, &mode);
+    if (res != SIM800L_OK)
+    {
+        printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
+        return res;
+    }
+    printf("mode: %i\n", mode);
+
+    // reset sim800L
+    sim800L->power_gpio_set_level(0);
+    sim800L->delay_ms(100);
+    sim800L->power_gpio_set_level(1);
+
+    // check for sim800L
+    for (int i = 0; i < 5; i++)
+    {
+        res = SIM800L_AT(sim800L);
+        if (res == SIM800L_OK)
+            break;
+    }
+    if (res != SIM800L_OK)
+        return res;
+
+    // verify if net-time enabled
+    /*
+        res = SIM800L_CLTS_QUERY(sim800L, &mode);
+        if (res != SIM800L_OK || mode == 0)
+        {
+            printf("mode error: %i\n", mode);
+            printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
+            return res;
+        }
+        */
+    /*
+    }
+*/
+    return SIM800L_OK;
+}
+
+sim800L_err_t sim800_gettimestamp_by_net(sim800L_t *sim800L, uint32_t *timestamp)
+{
+    sim800L_err_t res;
+
+    // read time
+    res = SIM800L_CCLK_QUERY(sim800L);
+    if (res != SIM800L_OK)
+    {
+        printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
+        return res;
+    }
+    return SIM800L_OK;
 }

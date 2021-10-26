@@ -8,22 +8,7 @@
 #define COLOR_CYAN "\033[0;36m"
 #define COLOR_WHITE "\033[0;37m"
 
-#define SIM800L_ENABLE(p_sim800L)            \
-    {                                        \
-        p_sim800L->pwrkey_gpio_set_level(1); \
-        p_sim800L->delay_ms(1);              \
-        p_sim800L->pwrkey_gpio_set_level(0); \
-        p_sim800L->delay_ms(2000);           \
-        p_sim800L->pwrkey_gpio_set_level(1); \
-    }
-#define SIM800L_DISABLE(p_sim800L)           \
-    {                                        \
-        p_sim800L->pwrkey_gpio_set_level(1); \
-        p_sim800L->delay_ms(1);              \
-        p_sim800L->pwrkey_gpio_set_level(0); \
-        p_sim800L->delay_ms(1000);           \
-        p_sim800L->pwrkey_gpio_set_level(1); \
-    }
+
 #define SIM800L_HW_RESET(p_sim800L)         \
     {                                       \
         p_sim800L->reset_gpio_set_level(1); \
