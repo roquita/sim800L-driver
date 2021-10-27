@@ -36,7 +36,7 @@ static inline sim800L_err_t SIM800L_CADC(sim800L_t *sim800L, int *status, int *v
     return SIM800L_OK;
 }
 
-static inline sim800L_err_t SIM800L_CLTS(sim800L_t *sim800L, int mode)
+static inline sim800L_err_t SIM800L_CLTS_WRITE(sim800L_t *sim800L, int mode)
 {
     char response[50] = {0};
     char at_cmd[20] = {0};
@@ -59,7 +59,7 @@ static inline sim800L_err_t SIM800L_CLTS(sim800L_t *sim800L, int mode)
 
     return SIM800L_OK;
 }
-static inline sim800L_err_t SIM800L_CLTS_QUERY(sim800L_t *sim800L, int* mode)
+static inline sim800L_err_t SIM800L_CLTS_READ(sim800L_t *sim800L, int* mode)
 {
     char response[50] = {0};
     char at_cmd[10] = {0};

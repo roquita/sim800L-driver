@@ -44,11 +44,11 @@ static inline sim800L_err_t SIM800L_SAPBR(sim800L_t *sim800L, sapbr_input_t *inp
     // SEND AND RECEIVE ANSWER
     sim800L_err_t res;
     if (cmd_type == 0 || cmd_type == 1 || cmd_type == 3)
-        res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 1, 3000);
+        res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 1, 10000);
     else if (cmd_type == 2)
-        res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 2, 3000);
+        res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 2, 10000);
     else if (cmd_type == 4)
-        res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 3, 3000);
+        res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 3, 10000);
     else
         return SIM800L_INVALID_ARG;
 
