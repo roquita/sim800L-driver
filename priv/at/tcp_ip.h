@@ -81,7 +81,7 @@ static inline sim800L_err_t SIM800L_CIICR(sim800L_t *sim800L)
 
     // SEND AND RECEIVE ANSWER
     sim800L_err_t res;
-    res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 1, 5000);
+    res = SIM800L_SEND_AT_CMD(sim800L, at_cmd, response, sizeof(response) / sizeof(char), 1, 10000);
 
     if (res != SIM800L_OK)
         return res;
