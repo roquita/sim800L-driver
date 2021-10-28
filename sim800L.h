@@ -1,6 +1,6 @@
 #pragma once
 
-//#define SIM800L_DEBUG
+#define SIM800L_DEBUG
 
 #ifdef __cplusplus
 extern "C"
@@ -43,6 +43,8 @@ extern "C"
     sim800L_err_t sim800_battery_level(sim800L_t *sim800L, int *mvolt);
     sim800L_err_t sim800_read_adc(sim800L_t *sim800L, int *status, int *value);
     sim800L_err_t sim800_wait_until_detect_signal(sim800L_t *sim800L, int timeout_ms);
+    sim800L_err_t sim800_tcp_req_start(sim800L_t *sim800L, char *domain, int port, int ssl, int mode);
+    sim800L_err_t sim800_tcp_req_end(sim800L_t *sim800L, char *torcv, int torcv_len, bool wait_for_answer);
     sim800L_err_t sim800_tcp_request(sim800L_t *sim800L, char *domain, int port,
                                      char *pre, uint8_t *body, int size, char *post,
                                      char *torcv, int torcv_len, int ssl, int mode);
