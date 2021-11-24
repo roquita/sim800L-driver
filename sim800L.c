@@ -5,14 +5,30 @@
 
 sim800L_err_t sim800L_init(sim800L_t *sim800L)
 {
-    sim800L->reset_gpio_set_level(1);
+    // start-up secuence
 
-    // turn on power if it exists
-    if (sim800L->power_gpio_set_level)
-        sim800L->power_gpio_set_level(1);
+    switch (sim800L->ctrl.type)
+    {
+    case SIM800L_CTRL_RESET:
+    {
+        if (sim800L->ctrl.reset_gpio_set_level)
+        {
+            SIM800L_HW_RESET(sim800L);
+        }
+        break;
+    }
+    case SIM800L_CTRL_PWRKEY:
+    {
+        if (sim800L->ctrl.pwrkey_gpio_set_level)
+        {
+            SIM800L_HW_PWRKEY(sim800L); // power on
+        }
+        break;
+    }
+    default:
 
-    // hold-up at start-up
-    SIM800L_HW_RESET(sim800L);
+        break;
+    }
 
     sim800L_err_t res;
 
@@ -246,10 +262,30 @@ sim800L_err_t sim800_sync_rtc_with_net(sim800L_t *sim800L)
         if (res != SIM800L_OK)
             return res;
 
-        // reset sim800L
-        sim800L->power_gpio_set_level(0);
-        sim800L->delay_ms(100);
-        sim800L->power_gpio_set_level(1);
+        // reset secuence
+        switch (sim800L->ctrl.type)
+        {
+        case SIM800L_CTRL_RESET:
+        {
+            if (sim800L->ctrl.reset_gpio_set_level)
+            {
+                SIM800L_HW_RESET(sim800L);
+            }
+            break;
+        }
+        case SIM800L_CTRL_PWRKEY:
+        {
+            if (sim800L->ctrl.pwrkey_gpio_set_level)
+            {
+                SIM800L_HW_PWRKEY(sim800L); //power off
+                sim800L->delay_ms(1000);
+                SIM800L_HW_PWRKEY(sim800L); // power on
+            }
+            break;
+        }
+        default:
+            break;
+        }
 
         // check for sim800L
         for (int i = 0; i < 5; i++)
@@ -274,21 +310,6 @@ sim800L_err_t sim800_sync_rtc_with_net(sim800L_t *sim800L)
 
     return SIM800L_OK;
 }
-
-sim800L_err_t sim800_get_rtc_timestamp(sim800L_t *sim800L, uint32_t *timestamp)
-{
-    sim800L_err_t res;
-
-    // read time
-    res = SIM800L_CCLK_READ(sim800L, timestamp);
-    if (res != SIM800L_OK)
-    {
-        printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
-        return res;
-    }
-    return SIM800L_OK;
-}
-
 sim800L_err_t sim800_sync_rtc_with_ntp(sim800L_t *sim800L, char *ntp_ip)
 {
     sim800L_err_t res;
@@ -311,6 +332,72 @@ sim800L_err_t sim800_sync_rtc_with_ntp(sim800L_t *sim800L, char *ntp_ip)
     if (res != SIM800L_OK)
     {
         printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
+        return res;
+    }
+
+    return SIM800L_OK;
+}
+sim800L_err_t sim800_get_rtc_timestamp(sim800L_t *sim800L, uint32_t *timestamp)
+{
+    sim800L_err_t res;
+
+    // read time
+    res = SIM800L_CCLK_READ(sim800L, timestamp);
+    if (res != SIM800L_OK)
+    {
+        printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
+        return res;
+    }
+    return SIM800L_OK;
+}
+sim800L_err_t sim800_gps_on(sim800L_t *sim800L)
+{
+    sim800L_err_t res;
+/*
+    res = SIM800L_CGNSTST_WRITE(sim800L, 1);
+    if (res != SIM800L_OK)
+    {
+        printf("func=%s, line=%u, res=%u\n", __func__, __LINE__, res);
+        return res;
+    }
+*/
+    res = SIM800L_CGNSPWR_WRITE(sim800L, 0);
+    if (res != SIM800L_OK)
+    {
+        printf("func=%s, line=%u, res=%u\n", __func__, __LINE__, res);
+        return res;
+    }
+
+    res = SIM800L_CGNSPWR_WRITE(sim800L, 1);
+    if (res != SIM800L_OK)
+    {
+        printf("func=%s, line=%u, res=%u\n", __func__, __LINE__, res);
+        return res;
+    }
+
+    int mode = 0;
+    for (int i = 0; i < 10; i++)
+    {
+        res = SIM800L_CGNSPWR_READ(sim800L, &mode);
+        if (res == SIM800L_OK && mode == 1)
+            break;
+    }
+    if (mode != 1)
+    {
+        printf("func=%s, line=%u, res=%u\n", __func__, __LINE__, res);
+        return res;
+    }
+
+    return SIM800L_OK;
+}
+sim800L_err_t sim800_gps_read(sim800L_t *sim800L)
+{
+    sim800L_err_t res;
+
+    res = SIM800L_CGNSINF_EXE(sim800L);
+    if (res != SIM800L_OK)
+    {
+        printf("func=%s, line=%u, res=%u\n", __func__, __LINE__, res);
         return res;
     }
 

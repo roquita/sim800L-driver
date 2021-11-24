@@ -8,14 +8,22 @@
 #define COLOR_CYAN "\033[0;36m"
 #define COLOR_WHITE "\033[0;37m"
 
-
 #define SIM800L_HW_RESET(p_sim800L)         \
     {                                       \
-        p_sim800L->reset_gpio_set_level(1); \
+        p_sim800L->ctrl.reset_gpio_set_level(1); \
         p_sim800L->delay_ms(1);             \
-        p_sim800L->reset_gpio_set_level(0); \
+        p_sim800L->ctrl.reset_gpio_set_level(0); \
         p_sim800L->delay_ms(105);           \
-        p_sim800L->reset_gpio_set_level(1); \
+        p_sim800L->ctrl.reset_gpio_set_level(1); \
+    }
+
+#define SIM800L_HW_PWRKEY(p_sim800L)         \
+    {                                        \
+        p_sim800L->ctrl.pwrkey_gpio_set_level(1); \
+        p_sim800L->delay_ms(1);              \
+        p_sim800L->ctrl.pwrkey_gpio_set_level(0); \
+        p_sim800L->delay_ms(1500);           \
+        p_sim800L->ctrl.pwrkey_gpio_set_level(1); \
     }
 
 static inline sim800L_err_t SIM800L_WAIT_FOR_BYTES(sim800L_t *sim800L, char *tofind, char *response, int max_len, int32_t timeout)
@@ -138,8 +146,8 @@ static inline sim800L_err_t SIM800L_SEND_AT_CMD(sim800L_t *sim800L, char *cmd, c
     printf("\"%s\" ---> ", cmd);
 #endif
 
-    sim800L_err_t res = sim800L->write((uint8_t*)cmd, strlen(cmd));
-    res = sim800L->write((uint8_t*)"\r\n", 2);
+    sim800L_err_t res = sim800L->write((uint8_t *)cmd, strlen(cmd));
+    res = sim800L->write((uint8_t *)"\r\n", 2);
     if (res != SIM800L_OK)
     {
 #ifdef SIM800L_DEBUG
