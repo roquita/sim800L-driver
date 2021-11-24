@@ -1,4 +1,5 @@
 examples/espidf-tcp-ex/build/
 examples/espidf-gps-ex/build/
+examples/espidf-gsmloc-ex/build/
 examples/espidf-ex/sdkconfig
 examples/espidf-ex/sdkconfig.old

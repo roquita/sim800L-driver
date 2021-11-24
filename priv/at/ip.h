@@ -64,8 +64,6 @@ static inline sim800L_err_t SIM800L_SAPBR(sim800L_t *sim800L, sapbr_input_t *inp
     }
     else if (cmd_type == 2)
     {
-        assert(output != 0);
-
         char *sapbr = strtok(response, "\r\n:,");
         char *cid = strtok(NULL, "\r\n:,");
         char *status = strtok(NULL, "\r\n:,");
@@ -77,14 +75,15 @@ static inline sim800L_err_t SIM800L_SAPBR(sim800L_t *sim800L, sapbr_input_t *inp
         if (ok == 0 || strcmp(ok, "OK") != 0)
             return SIM800L_ERROR;
 
-        output->cid = atoi(cid);
-        output->status = atoi(status);
-        snprintf(output->ip_addr, 20, "%s", ip_addr);
+        if (output)
+        {
+            output->cid = atoi(cid);
+            output->status = atoi(status);
+            snprintf(output->ip_addr, 20, "%s", ip_addr);
+        }
     }
     else if (cmd_type == 4)
     {
-        assert(output != 0);
-
         char *sapbr = strtok(response, "\r\n:,");
         char *connParamTag = strtok(NULL, "\r\n:,");
         char *connParamValue = strtok(NULL, "\r\n:,");
@@ -95,12 +94,14 @@ static inline sim800L_err_t SIM800L_SAPBR(sim800L_t *sim800L, sapbr_input_t *inp
         if (ok == 0 || strcmp(ok, "OK") != 0)
             return SIM800L_ERROR;
 
-        snprintf(output->connParamTag, 20, "%s", connParamTag);
-        snprintf(output->connParamValue, 20, "%s", connParamValue);
+        if (output)
+        {
+            snprintf(output->connParamTag, 20, "%s", connParamTag);
+            snprintf(output->connParamValue, 20, "%s", connParamValue);
+        }
     }
     else
         return SIM800L_INVALID_ARG;
 
     return SIM800L_OK;
 }
-

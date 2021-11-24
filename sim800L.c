@@ -91,11 +91,31 @@ sim800L_err_t sim800_link_net(sim800L_t *sim800L, char *apn, char *username, cha
         return res;
 
     sapbr_input_t sapbr_input;
+    sapbr_input.cmd_type = 3;
+    sapbr_input.cid = 1;
+    sprintf(sapbr_input.connParamTag, "Contype");
+    sprintf(sapbr_input.connParamValue, "GPRS");
+    res = SIM800L_SAPBR(sim800L, &sapbr_input, NULL);
+    if (res != SIM800L_OK)
+        return res;
+
+    sapbr_input.cmd_type = 3;
+    sapbr_input.cid = 1;
+    sprintf(sapbr_input.connParamTag, "APN");
+    sprintf(sapbr_input.connParamValue, "entel");
+    res = SIM800L_SAPBR(sim800L, &sapbr_input, NULL);
+    if (res != SIM800L_OK)
+        return res;
+
     sapbr_input.cmd_type = 1;
     sapbr_input.cid = 1;
     res = SIM800L_SAPBR(sim800L, &sapbr_input, NULL);
     if (res != SIM800L_OK)
         return res;
+
+    sapbr_input.cmd_type = 2;
+    sapbr_input.cid = 1;
+    SIM800L_SAPBR(sim800L, &sapbr_input, NULL);
 
     return SIM800L_OK;
 }
@@ -316,24 +336,15 @@ sim800L_err_t sim800_sync_rtc_with_ntp(sim800L_t *sim800L, char *ntp_ip)
 
     res = SIM800L_CNTPCID_WRITE(sim800L, 1);
     if (res != SIM800L_OK)
-    {
-        printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
         return res;
-    }
 
     res = SIM800L_CNTP_WRITE(sim800L, ntp_ip, 0);
     if (res != SIM800L_OK)
-    {
-        printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
         return res;
-    }
 
     res = SIM800L_CNTP_EXE(sim800L);
     if (res != SIM800L_OK)
-    {
-        printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
         return res;
-    }
 
     return SIM800L_OK;
 }
@@ -344,16 +355,14 @@ sim800L_err_t sim800_get_rtc_timestamp(sim800L_t *sim800L, uint32_t *timestamp)
     // read time
     res = SIM800L_CCLK_READ(sim800L, timestamp);
     if (res != SIM800L_OK)
-    {
-        printf("%s, %s, %u\n", __FILE__, __func__, __LINE__);
         return res;
-    }
+
     return SIM800L_OK;
 }
 sim800L_err_t sim800_gps_on(sim800L_t *sim800L)
 {
     sim800L_err_t res;
-/*
+    /*
     res = SIM800L_CGNSTST_WRITE(sim800L, 1);
     if (res != SIM800L_OK)
     {
@@ -363,17 +372,11 @@ sim800L_err_t sim800_gps_on(sim800L_t *sim800L)
 */
     res = SIM800L_CGNSPWR_WRITE(sim800L, 0);
     if (res != SIM800L_OK)
-    {
-        printf("func=%s, line=%u, res=%u\n", __func__, __LINE__, res);
         return res;
-    }
 
     res = SIM800L_CGNSPWR_WRITE(sim800L, 1);
     if (res != SIM800L_OK)
-    {
-        printf("func=%s, line=%u, res=%u\n", __func__, __LINE__, res);
         return res;
-    }
 
     int mode = 0;
     for (int i = 0; i < 10; i++)
@@ -383,10 +386,7 @@ sim800L_err_t sim800_gps_on(sim800L_t *sim800L)
             break;
     }
     if (mode != 1)
-    {
-        printf("func=%s, line=%u, res=%u\n", __func__, __LINE__, res);
         return res;
-    }
 
     return SIM800L_OK;
 }
@@ -396,10 +396,25 @@ sim800L_err_t sim800_gps_read(sim800L_t *sim800L)
 
     res = SIM800L_CGNSINF_EXE(sim800L);
     if (res != SIM800L_OK)
-    {
-        printf("func=%s, line=%u, res=%u\n", __func__, __LINE__, res);
         return res;
+
+    return SIM800L_OK;
+}
+sim800L_err_t sim800_wait_until_detect_gsmloc(sim800L_t *sim800L, int cid, float *lon, float *lat)
+{
+    sim800L_err_t res;
+
+    for (int i = 0; i < 10; i++)
+    {
+        res = SIM800L_CIPGSMLOC_WRITE(sim800L, 1, cid, lon, lat);
+        if (res == SIM800L_OK)
+            break;
+        
+        sim800L->delay_ms(1000);
     }
+
+    if (res != SIM800L_OK)
+        return res;
 
     return SIM800L_OK;
 }

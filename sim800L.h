@@ -65,8 +65,9 @@ extern "C"
     sim800L_err_t sim800_sync_rtc_with_net(sim800L_t *sim800L);
     sim800L_err_t sim800_sync_rtc_with_ntp(sim800L_t *sim800L, char *ntp_ip);
     sim800L_err_t sim800_get_rtc_timestamp(sim800L_t *sim800L, uint32_t *timestamp);
-    sim800L_err_t sim800_gps_on(sim800L_t* sim800L);
-    sim800L_err_t sim800_gps_read(sim800L_t* sim800L);
+    sim800L_err_t sim800_gps_on(sim800L_t *sim800L);
+    sim800L_err_t sim800_gps_read(sim800L_t *sim800L);
+    sim800L_err_t sim800_wait_until_detect_gsmloc(sim800L_t *sim800L, int cid, float *lon, float *lat);
 
 #ifdef __cplusplus
 }
