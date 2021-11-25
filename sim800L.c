@@ -62,7 +62,33 @@ sim800L_err_t sim800L_init(sim800L_t *sim800L)
 
     return SIM800L_OK;
 }
+sim800L_err_t sim800L_deinit(sim800L_t *sim800L)
+{
+    switch (sim800L->ctrl.type)
+    {
+    case SIM800L_CTRL_RESET:
+    {
+        if (sim800L->ctrl.reset_gpio_set_level)
+        {
+            SIM800L_HW_RESET(sim800L);
+        }
+        break;
+    }
+    case SIM800L_CTRL_PWRKEY:
+    {
+        if (sim800L->ctrl.pwrkey_gpio_set_level)
+        {
+            SIM800L_HW_PWRKEY(sim800L); // power on/off
+        }
+        break;
+    }
+    default:
 
+        break;
+    }
+
+    return SIM800L_OK;
+}
 sim800L_err_t sim800_link_net(sim800L_t *sim800L, char *apn, char *username, char *password, int mode)
 {
     sim800L_err_t res;
@@ -409,7 +435,7 @@ sim800L_err_t sim800_wait_until_detect_gsmloc(sim800L_t *sim800L, int cid, float
         res = SIM800L_CIPGSMLOC_WRITE(sim800L, 1, cid, lon, lat);
         if (res == SIM800L_OK)
             break;
-        
+
         sim800L->delay_ms(1000);
     }
 

@@ -53,6 +53,7 @@ extern "C"
     } sim800L_t;
 
     sim800L_err_t sim800L_init(sim800L_t *sim800L);
+    sim800L_err_t sim800L_deinit(sim800L_t *sim800L);
     sim800L_err_t sim800_link_net(sim800L_t *sim800L, char *apn, char *username, char *password, int mode);
     sim800L_err_t sim800_battery_level(sim800L_t *sim800L, int *mvolt);
     sim800L_err_t sim800_read_adc(sim800L_t *sim800L, int *status, int *value);
